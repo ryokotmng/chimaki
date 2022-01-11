@@ -2,11 +2,13 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"net/http"
 )
 
 var (
-	endpoint = flag.String("endpoint", "", "endpoint url this tool will load")
+	endpoint   = flag.String("endpoint", "", "endpoint url this tool will load")
+	httpMethod = flag.String("http_method", "", "http request method")
 )
 
 func main() {
@@ -15,5 +17,10 @@ func main() {
 }
 
 func sendRequest(endPoint string) {
-	http.Get(endPoint)
+	switch *httpMethod {
+	case "PUT":
+		fmt.Println("unimplemented!")
+	default:
+		http.Get(endPoint)
+	}
 }
