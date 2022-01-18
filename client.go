@@ -24,7 +24,7 @@ func (c *client) sendRequest(ctx context.Context) {
 	if err != nil {
 		return
 	}
-	t := time.NewTicker(time.Duration(*interval) * time.Millisecond)
+	t := time.NewTicker(time.Duration(1000 / *rate) * time.Millisecond)
 	testStartTime := time.Now()
 	var numOfRequestsSent int
 	for {

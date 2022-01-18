@@ -9,8 +9,8 @@ import (
 var (
 	endpoint   = flag.String("endpoint", "", "endpoint url this tool will load")
 	httpMethod = flag.String("http_method", "", "http request method")
-	interval   = flag.Uint64("interval", 1000, "interval(milliseconds) to load. Default value is 1,000 and must be uint64")
 	duration   = flag.Uint64("duration", 60, "duration(seconds) to load. Default value is 60 and must be uint64")
+	rate       = flag.Uint64("rate", 50, "Number of requests per time unit [0 = infinity] (default 50/1s)")
 )
 
 func main() {
