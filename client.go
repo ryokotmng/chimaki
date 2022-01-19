@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -25,14 +24,13 @@ func (c *client) sendRequest(ctx context.Context) {
 		return
 	}
 	t := time.NewTicker(time.Duration(1000 / *rate) * time.Millisecond)
-	testStartTime := time.Now()
 	var numOfRequestsSent int
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-t.C:
-			requestStartTime := time.Now()
+			r := NewResult()
 			res, err := c.Do(req)
 			if err != nil {
 				break
@@ -40,16 +38,10 @@ func (c *client) sendRequest(ctx context.Context) {
 			if err := res.Body.Close(); err != nil {
 				log.Fatalf("failed to close response body: %+v", err)
 			}
-			printDetails(numOfRequestsSent, time.Since(testStartTime).Milliseconds(), time.Since(requestStartTime).Milliseconds(), res)
+			numOfRequestsSent++
+			r.BuildResult(*res)
+			r.printDetails(numOfRequestsSent)
 		}
-		numOfRequestsSent++
 	}
 	t.Stop()
-}
-
-func printDetails(numOfRequestsSent int, elapsedTime int64, latency int64, res *http.Response) {
-	fmt.Printf("number of requests sent: %v\n", numOfRequestsSent)
-	fmt.Printf("elapsed time of the test: %vms\n", elapsedTime)
-	fmt.Printf("latency: %vms\n", latency)
-	fmt.Printf("response(status code: %v) ", res.StatusCode)
 }
