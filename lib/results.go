@@ -1,4 +1,4 @@
-package main
+package chimaki
 
 import (
 	"fmt"
@@ -18,16 +18,15 @@ type Result struct {
 	Header     http.Header   `json:"header"`
 }
 
-func NewResult() *Result {
+func NewResult(endPoint string) *Result {
 	return &Result{
 		Timestamp: time.Now(),
-		URL:       *endpoint,
+		URL:       endPoint,
 	}
 }
 
 func (r *Result) BuildResult(res http.Response) {
 	r.StatusCode = uint16(res.StatusCode)
-	r.Method = *httpMethod
 	r.Latency = time.Now().Sub(r.Timestamp)
 	r.Header = res.Header
 }

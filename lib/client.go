@@ -1,4 +1,4 @@
-package main
+package chimaki
 
 import (
 	"context"
@@ -8,29 +8,31 @@ import (
 )
 
 type client struct {
-	endpoint string
+	endpoint   string
+	httpMethod string
+	rate       uint64
 	*http.Client
 }
 
-func newClient(endpoint string) *client {
+func NewClient(endpoint string, httpMethod string, rate uint64) *client {
 	c := *http.DefaultClient
 	clone := &c
-	return &client{endpoint, clone}
+	return &client{endpoint, httpMethod, rate, clone}
 }
 
-func (c *client) sendRequest(ctx context.Context) {
-	req, err := http.NewRequest(*httpMethod, c.endpoint, nil)
+func (c *client) SendRequest(ctx context.Context) {
+	req, err := http.NewRequest(c.httpMethod, c.endpoint, nil)
 	if err != nil {
 		return
 	}
-	t := time.NewTicker(time.Duration(1000 / *rate) * time.Millisecond)
+	t := time.NewTicker(time.Duration(1000/c.rate) * time.Millisecond)
 	var numOfRequestsSent int
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-t.C:
-			r := NewResult()
+			r := NewResult(c.endpoint)
 			res, err := c.Do(req)
 			if err != nil {
 				break

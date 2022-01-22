@@ -1,6 +1,7 @@
 package main
 
 import (
+	"chimaki/lib"
 	"context"
 	"flag"
 	"time"
@@ -17,7 +18,7 @@ func main() {
 	flag.Parse()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	c := newClient(*endpoint)
-	go c.sendRequest(ctx)
+	c := chimaki.NewClient(*endpoint, *httpMethod, *rate)
+	go c.SendRequest(ctx)
 	time.Sleep(time.Duration(*duration) * time.Second)
 }
