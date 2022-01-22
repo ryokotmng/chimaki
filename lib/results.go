@@ -8,20 +8,20 @@ import (
 
 // Result contains the results of a single Target hit.
 type Result struct {
-	StatusCode uint16        `json:"code"`
+	StatusCode uint16        `json:"status_code"`
 	Timestamp  time.Time     `json:"timestamp"`
 	Latency    time.Duration `json:"latency"`
 	Error      string        `json:"error"`
 	Body       []byte        `json:"body"`
-	Method     string        `json:"method"`
+	HttpMethod string        `json:"http_method"`
 	URL        string        `json:"url"`
 	Header     http.Header   `json:"header"`
 }
 
-func NewResult(endPoint string) *Result {
+func NewResult(url string) *Result {
 	return &Result{
 		Timestamp: time.Now(),
-		URL:       endPoint,
+		URL:       url,
 	}
 }
 
