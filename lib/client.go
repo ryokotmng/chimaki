@@ -27,6 +27,7 @@ func (c *client) SendRequest(ctx context.Context) {
 	}
 	t := time.NewTicker(time.Duration(1000/c.rate) * time.Millisecond)
 	var numOfRequestsSent int
+	var results Results
 	for {
 		select {
 		case <-ctx.Done():
@@ -43,7 +44,9 @@ func (c *client) SendRequest(ctx context.Context) {
 			numOfRequestsSent++
 			r.BuildResult(*res)
 			r.printDetails(numOfRequestsSent)
+			results.Add(r)
 		}
 	}
 	t.Stop()
+	results.CalculateMetrics()
 }

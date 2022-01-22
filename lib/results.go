@@ -46,3 +46,14 @@ type Results []Result
 // Add implements the Add method of the Report interface by appending the given
 // Result to the slice.
 func (rs *Results) Add(r *Result) { *rs = append(*rs, *r) }
+
+func (rs *Results) CalculateMetrics() {
+	m := &metrics{}
+	m.RequestsSent++
+	for _, r := range *rs {
+		if r.StatusCode != http.StatusOK {
+			m.Errors[r.StatusCode]++
+		}
+	}
+	m.PrintMetrics()
+}
