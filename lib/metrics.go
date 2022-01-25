@@ -15,7 +15,7 @@ type metrics struct {
 	Method         string         `json:"method"`
 	URL            string         `json:"url"`
 	Header         http.Header    `json:"header"`
-	RequestsSent   uint64         `json:"requests_sent"`
+	RequestsSent   int            `json:"requests_sent"`
 
 	StatusCodes map[uint16]uint64 `json:"status_codes"`
 	Errors      map[uint16]uint64 `json:"errors"`

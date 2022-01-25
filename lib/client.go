@@ -1,7 +1,10 @@
 package chimaki
 
 import (
+	"bytes"
 	"context"
+	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
@@ -11,6 +14,7 @@ type client struct {
 	endpoint   string
 	httpMethod string
 	rate       uint64
+	body       io.Reader
 	*http.Client
 }
 
@@ -18,19 +22,22 @@ type ClientOptions struct {
 	Url        string
 	HttpMethod string
 	Rate       uint64
+	Bodyf      string
 }
 
 func NewClient(ops *ClientOptions) *client {
 	c := *http.DefaultClient
 	clone := &c
-	return &client{ops.Url, ops.HttpMethod, ops.Rate, clone}
+	body, e := ioutil.ReadFile(ops.Bodyf)
+	if e != nil {
+		body = nil
+	}
+	var b bytes.Buffer
+	b.Write(body)
+	return &client{ops.Url, ops.HttpMethod, ops.Rate, &b, clone}
 }
 
 func (c *client) ExecuteLoadTest(ctx context.Context) *Results {
-	req, err := http.NewRequest(c.httpMethod, c.endpoint, nil)
-	if err != nil {
-		return nil
-	}
 	t := time.NewTicker(time.Duration(1000/c.rate) * time.Millisecond)
 	var numOfRequestsSent int
 	var results Results
@@ -41,6 +48,10 @@ Req:
 			t.Stop()
 			break Req
 		case <-t.C:
+			req, err := http.NewRequest(c.httpMethod, c.endpoint, c.body)
+			if err != nil {
+				return nil
+			}
 			r := NewResult(c.endpoint)
 			res, err := c.Do(req)
 			if err != nil {
