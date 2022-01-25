@@ -20,10 +20,10 @@ func NewClient(endpoint string, httpMethod string, rate uint64) *client {
 	return &client{endpoint, httpMethod, rate, clone}
 }
 
-func (c *client) SendRequest(ctx context.Context) {
+func (c *client) ExecuteLoadTest(ctx context.Context) *Results {
 	req, err := http.NewRequest(c.httpMethod, c.endpoint, nil)
 	if err != nil {
-		return
+		return nil
 	}
 	t := time.NewTicker(time.Duration(1000/c.rate) * time.Millisecond)
 	var numOfRequestsSent int
@@ -31,8 +31,8 @@ func (c *client) SendRequest(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			results.CreateMetrics()
-			break
+			t.Stop()
+			return &results
 		case <-t.C:
 			r := NewResult(c.endpoint)
 			res, err := c.Do(req)
@@ -48,6 +48,4 @@ func (c *client) SendRequest(ctx context.Context) {
 			results.Add(r)
 		}
 	}
-	t.Stop()
-	return
 }

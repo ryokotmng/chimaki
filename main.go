@@ -16,12 +16,10 @@ var (
 
 func main() {
 	flag.Parse()
-	ctx, cancel := context.WithCancel(context.Background())
-	// defer cancel()
+	timeout := time.Duration(*duration) * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
 	c := chimaki.NewClient(*url, *httpMethod, *rate)
-	go c.SendRequest(ctx)
-	time.Sleep(time.Duration(*duration) * time.Second)
-	cancel()
-	// TODO: use channel to stop the main thread
-	time.Sleep(time.Duration(*duration) * 10 * time.Millisecond)
+	results := c.ExecuteLoadTest(ctx)
+	results.CreateMetrics()
 }
