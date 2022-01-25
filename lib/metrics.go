@@ -39,6 +39,9 @@ func (m *metrics) calcMeanValueOfLatencies() {
 
 func (m *metrics) calcLatenciesByPCT() {
 	findLatencyByPCT := func(pct float64) time.Duration {
+		if m.RequestsSent == 1 {
+			return m.Latencies[0]
+		}
 		numOfRequests := float64(m.RequestsSent)
 		return m.Latencies[int(math.Ceil(numOfRequests*pct))]
 	}
