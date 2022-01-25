@@ -3,6 +3,7 @@ package chimaki
 import (
 	"fmt"
 	"net/http"
+	"sort"
 	"time"
 )
 
@@ -47,13 +48,20 @@ type Results []Result
 // Result to the slice.
 func (rs *Results) Add(r *Result) { *rs = append(*rs, *r) }
 
-func (rs *Results) CalculateMetrics() {
+func (rs *Results) CreateMetrics() {
 	m := &metrics{}
-	m.RequestsSent++
 	for _, r := range *rs {
+		m.RequestsSent++
 		if r.StatusCode != http.StatusOK {
 			m.Errors[r.StatusCode]++
 		}
+		if m.LatencyMetrics.Max < r.Latency {
+			m.LatencyMetrics.Max = r.Latency
+		}
+		m.Latencies = append(m.Latencies, r.Latency)
+		m.LatencyMetrics.Total += r.Latency
 	}
+	sort.Slice(m.Latencies, func(i, j int) bool { return m.Latencies[i] < m.Latencies[j] })
+	m.calcMetrics()
 	m.PrintMetrics()
 }

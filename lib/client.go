@@ -31,7 +31,8 @@ func (c *client) SendRequest(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			return
+			results.CreateMetrics()
+			break
 		case <-t.C:
 			r := NewResult(c.endpoint)
 			res, err := c.Do(req)
@@ -48,5 +49,5 @@ func (c *client) SendRequest(ctx context.Context) {
 		}
 	}
 	t.Stop()
-	results.CalculateMetrics()
+	return
 }

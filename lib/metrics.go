@@ -2,6 +2,7 @@ package chimaki
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"time"
 )
@@ -18,15 +19,42 @@ type metrics struct {
 
 	StatusCodes map[uint16]uint64 `json:"status_codes"`
 	Errors      map[uint16]uint64 `json:"errors"`
+	Latencies   []time.Duration   `json:"latencies"`
+}
+
+func (m *metrics) calcMetrics() {
+	// MEMO: can use goroutine to calc, maybe?
+	m.calcMeanValueOfLatencies()
+	m.calcLatenciesByPCT()
+}
+
+func (m *metrics) calcMeanValueOfLatencies() {
+	if m.RequestsSent%2 == 0 {
+		idx := m.RequestsSent / 2
+		m.LatencyMetrics.Mean = (m.Latencies[idx] + m.Latencies[idx]) / 2
+		return
+	}
+	m.LatencyMetrics.Mean = m.Latencies[(m.RequestsSent-1)/2]
+}
+
+func (m *metrics) calcLatenciesByPCT() {
+	findLatencyByPCT := func(pct float64) time.Duration {
+		numOfRequests := float64(m.RequestsSent)
+		return m.Latencies[int(math.Ceil(numOfRequests*pct))]
+	}
+	m.LatencyMetrics.P50 = findLatencyByPCT(0.50)
+	m.LatencyMetrics.P90 = findLatencyByPCT(0.90)
+	m.LatencyMetrics.P95 = findLatencyByPCT(0.95)
+	m.LatencyMetrics.Min = m.Latencies[0]
+	m.LatencyMetrics.Max = m.Latencies[m.RequestsSent-1]
 }
 
 func (m *metrics) PrintMetrics() {
-	fmt.Println("test finished ==================")
+	fmt.Println("test finished! overall metrics as below ==================")
 	fmt.Printf("total time of the test: %v\n", m.LatencyMetrics.Total)
-	fmt.Printf("latencies: mean %v ms, min %v ms, max %v ms\n",
+	fmt.Printf("latencies: mean %v, min %v, max %v\n",
 		m.LatencyMetrics.Mean, m.LatencyMetrics.Min, m.LatencyMetrics.Max)
 	fmt.Printf("number of requests sent: %v\n", m.RequestsSent)
-	fmt.Printf("mean time of latencies: %vms\n", m.LatencyMetrics.Mean)
 }
 
 // LatencyMetrics holds computed request latency metrics.
