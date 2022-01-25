@@ -28,11 +28,12 @@ func (c *client) ExecuteLoadTest(ctx context.Context) *Results {
 	t := time.NewTicker(time.Duration(1000/c.rate) * time.Millisecond)
 	var numOfRequestsSent int
 	var results Results
+Req:
 	for {
 		select {
 		case <-ctx.Done():
 			t.Stop()
-			return &results
+			break Req
 		case <-t.C:
 			r := NewResult(c.endpoint)
 			res, err := c.Do(req)
@@ -48,4 +49,5 @@ func (c *client) ExecuteLoadTest(ctx context.Context) *Results {
 			results.Add(r)
 		}
 	}
+	return &results
 }
