@@ -49,9 +49,13 @@ type Results []Result
 func (rs *Results) Add(r *Result) { *rs = append(*rs, *r) }
 
 func (rs *Results) CreateMetrics() {
-	m := &metrics{}
+	count := len(*rs)
+	if count == 0 {
+		fmt.Println("test finished! No requests sent")
+		return
+	}
+	m := &metrics{RequestsSent: count}
 	for _, r := range *rs {
-		m.RequestsSent++
 		if r.StatusCode != http.StatusOK {
 			m.Errors[r.StatusCode]++
 		}
