@@ -50,7 +50,7 @@ Req:
 				log.Fatalf("failed to close response body: %+v", err)
 			}
 			numOfRequestsSent++
-			r.BuildResult(*res)
+			r.Build(*res)
 			r.printDetails(numOfRequestsSent)
 			results.Add(r)
 		}

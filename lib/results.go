@@ -26,7 +26,7 @@ func NewResult(url string) *Result {
 	}
 }
 
-func (r *Result) BuildResult(res http.Response) {
+func (r *Result) Build(res http.Response) {
 	r.StatusCode = uint16(res.StatusCode)
 	r.Latency = time.Now().Sub(r.Timestamp)
 	r.Header = res.Header
@@ -38,7 +38,7 @@ func (r *Result) End() time.Time { return r.Timestamp.Add(r.Latency) }
 func (r *Result) printDetails(numOfRequestsSent int) {
 	fmt.Printf("number of requests sent: %v\n", numOfRequestsSent)
 	fmt.Printf("latency: %vms\n", r.Latency)
-	fmt.Printf("response(status code: %v) ", r.StatusCode)
+	fmt.Printf("response(status code: %v)\n", r.StatusCode)
 }
 
 // Results is a slice of Result type elements.
