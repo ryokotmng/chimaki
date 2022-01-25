@@ -14,10 +14,16 @@ type client struct {
 	*http.Client
 }
 
-func NewClient(endpoint string, httpMethod string, rate uint64) *client {
+type ClientOptions struct {
+	Url        string
+	HttpMethod string
+	Rate       uint64
+}
+
+func NewClient(ops *ClientOptions) *client {
 	c := *http.DefaultClient
 	clone := &c
-	return &client{endpoint, httpMethod, rate, clone}
+	return &client{ops.Url, ops.HttpMethod, ops.Rate, clone}
 }
 
 func (c *client) ExecuteLoadTest(ctx context.Context) *Results {
