@@ -4,6 +4,7 @@ import (
 	"chimaki/lib"
 	"context"
 	"flag"
+	"runtime"
 	"time"
 )
 
@@ -17,6 +18,7 @@ func init() {
 	flag.StringVar(&options.Url, "url", "http://localhost:8080/", "url url this tool will load")
 	flag.StringVar(&options.HttpMethod, "http_method", "GET", "http request method")
 	flag.Uint64Var(&options.Rate, "rate", 50, "number of requests per time unit [0 = infinity] (default 50/1s)")
+	flag.IntVar(&options.CPUs, "cpus", runtime.NumCPU(), "Number of CPUs to use")
 	flag.StringVar(&options.Bodyf, "body_file", "", "the file path which contains text to body")
 }
 

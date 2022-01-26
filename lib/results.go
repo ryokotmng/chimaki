@@ -35,11 +35,10 @@ func (r *Result) BuildWithResponse(res http.Response) {
 // End returns the time at which a Result ended.
 func (r *Result) End() time.Time { return r.Timestamp.Add(r.Latency) }
 
-func (r *Result) printDetails(numOfRequestsSent int) {
-	fmt.Println("result of single request ---------------")
-	fmt.Printf("number of requests sent: %v\n", numOfRequestsSent)
-	fmt.Printf("latency: %vms\n", r.Latency)
-	fmt.Printf("response(status code: %v)\n", r.StatusCode)
+func (r *Result) printDetails() {
+	fmt.Printf("result of single request ---------------\n"+
+		"latency: %v\n response(status code: %v)\n",
+		r.Latency, r.StatusCode)
 }
 
 // Results is a slice of Result type elements.
