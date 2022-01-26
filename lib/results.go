@@ -9,7 +9,7 @@ import (
 
 // Result contains the results of a single Target hit.
 type Result struct {
-	StatusCode uint16        `json:"status_code"`
+	StatusCode int           `json:"status_code"`
 	Timestamp  time.Time     `json:"timestamp"`
 	Latency    time.Duration `json:"latency"`
 	Error      string        `json:"error"`
@@ -26,8 +26,8 @@ func NewResult(url string) *Result {
 	}
 }
 
-func (r *Result) Build(res http.Response) {
-	r.StatusCode = uint16(res.StatusCode)
+func (r *Result) BuildWithResponse(res http.Response) {
+	r.StatusCode = res.StatusCode
 	r.Latency = time.Now().Sub(r.Timestamp)
 	r.Header = res.Header
 }
@@ -36,6 +36,7 @@ func (r *Result) Build(res http.Response) {
 func (r *Result) End() time.Time { return r.Timestamp.Add(r.Latency) }
 
 func (r *Result) printDetails(numOfRequestsSent int) {
+	fmt.Println("result of single request ---------------")
 	fmt.Printf("number of requests sent: %v\n", numOfRequestsSent)
 	fmt.Printf("latency: %vms\n", r.Latency)
 	fmt.Printf("response(status code: %v)\n", r.StatusCode)
@@ -49,22 +50,26 @@ type Results []Result
 func (rs *Results) Add(r *Result) { *rs = append(*rs, *r) }
 
 func (rs *Results) CreateMetrics() {
+	var errCount int
 	count := len(*rs)
 	if count == 0 {
 		fmt.Println("test finished! No requests sent")
 		return
 	}
-	m := &metrics{RequestsSent: count}
+	m := &metrics{RequestsSent: count, StatusCodes: make(map[int]int)}
 	for _, r := range *rs {
-		if r.StatusCode != http.StatusOK {
-			m.Errors[r.StatusCode]++
-		}
 		if m.LatencyMetrics.Max < r.Latency {
 			m.LatencyMetrics.Max = r.Latency
 		}
-		m.Latencies = append(m.Latencies, r.Latency)
-		m.LatencyMetrics.Total += r.Latency
+		if r.Error != "" {
+			errCount++
+		} else {
+			m.StatusCodes[r.StatusCode]++
+			m.Latencies = append(m.Latencies, r.Latency)
+			m.LatencyMetrics.Total += r.Latency
+		}
 	}
+	m.ErrorRate = float64(errCount) / float64(m.RequestsSent)
 	sort.Slice(m.Latencies, func(i, j int) bool { return m.Latencies[i] < m.Latencies[j] })
 	m.calcMetrics()
 	m.PrintMetrics()

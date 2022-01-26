@@ -17,9 +17,8 @@ type metrics struct {
 	Header         http.Header    `json:"header"`
 	RequestsSent   int            `json:"requests_sent"`
 
-	StatusCodes map[uint16]uint64 `json:"status_codes"`
-	Errors      map[uint16]uint64 `json:"errors"`
-	Latencies   []time.Duration   `json:"latencies"`
+	StatusCodes map[int]int     `json:"status_codes"`
+	Latencies   []time.Duration `json:"latencies"`
 }
 
 func (m *metrics) calcMetrics() {
@@ -29,27 +28,28 @@ func (m *metrics) calcMetrics() {
 }
 
 func (m *metrics) calcMeanValueOfLatencies() {
-	if m.RequestsSent%2 == 0 {
-		idx := m.RequestsSent / 2
+	count := len(m.Latencies)
+	if count%2 == 0 {
+		idx := count / 2
 		m.LatencyMetrics.Mean = (m.Latencies[idx] + m.Latencies[idx]) / 2
 		return
 	}
-	m.LatencyMetrics.Mean = m.Latencies[(m.RequestsSent-1)/2]
+	m.LatencyMetrics.Mean = m.Latencies[(count-1)/2]
 }
 
 func (m *metrics) calcLatenciesByPCT() {
+	count := len(m.Latencies)
 	findLatencyByPCT := func(pct float64) time.Duration {
-		if m.RequestsSent == 1 {
+		if count == 1 {
 			return m.Latencies[0]
 		}
-		numOfRequests := float64(m.RequestsSent)
-		return m.Latencies[int(math.Ceil(numOfRequests*pct))]
+		return m.Latencies[int(math.Ceil(float64(count)*pct))]
 	}
 	m.LatencyMetrics.P50 = findLatencyByPCT(0.50)
 	m.LatencyMetrics.P90 = findLatencyByPCT(0.90)
 	m.LatencyMetrics.P95 = findLatencyByPCT(0.95)
 	m.LatencyMetrics.Min = m.Latencies[0]
-	m.LatencyMetrics.Max = m.Latencies[m.RequestsSent-1]
+	m.LatencyMetrics.Max = m.Latencies[count-1]
 }
 
 func (m *metrics) PrintMetrics() {
@@ -58,6 +58,8 @@ func (m *metrics) PrintMetrics() {
 	fmt.Printf("latencies: mean %v, min %v, max %v\n",
 		m.LatencyMetrics.Mean, m.LatencyMetrics.Min, m.LatencyMetrics.Max)
 	fmt.Printf("number of requests sent: %v\n", m.RequestsSent)
+	fmt.Printf("error rate: %v\n", m.ErrorRate)
+	fmt.Printf("status codes: %v\n", m.StatusCodes)
 }
 
 // LatencyMetrics holds computed request latency metrics.

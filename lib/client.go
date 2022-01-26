@@ -5,7 +5,6 @@ import (
 	"context"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"time"
 )
@@ -54,15 +53,13 @@ Req:
 			}
 			r := NewResult(c.endpoint)
 			res, err := c.Do(req)
-			if err != nil {
-				break
-			}
-			if err := res.Body.Close(); err != nil {
-				log.Fatalf("failed to close response body: %+v", err)
-			}
 			numOfRequestsSent++
-			r.Build(*res)
-			r.printDetails(numOfRequestsSent)
+			if err != nil {
+				r.Error = err.Error()
+			} else {
+				r.BuildWithResponse(*res)
+				r.printDetails(numOfRequestsSent)
+			}
 			results.Add(r)
 		}
 	}
