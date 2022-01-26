@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -22,12 +23,15 @@ type metrics struct {
 }
 
 func (m *metrics) calcMetrics() {
-	// MEMO: can use goroutine to calc, maybe?
-	m.calcMeanValueOfLatencies()
-	m.calcLatenciesByPCT()
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+	go m.calcMeanValueOfLatencies(&wg)
+	go m.calcLatenciesByPCT(&wg)
+	wg.Wait()
 }
 
-func (m *metrics) calcMeanValueOfLatencies() {
+func (m *metrics) calcMeanValueOfLatencies(wg *sync.WaitGroup) {
+	defer wg.Done()
 	count := len(m.Latencies)
 	if count%2 == 0 {
 		idx := count / 2
@@ -37,7 +41,8 @@ func (m *metrics) calcMeanValueOfLatencies() {
 	m.LatencyMetrics.Mean = m.Latencies[(count-1)/2]
 }
 
-func (m *metrics) calcLatenciesByPCT() {
+func (m *metrics) calcLatenciesByPCT(wg *sync.WaitGroup) {
+	defer wg.Done()
 	count := len(m.Latencies)
 	findLatencyByPCT := func(pct float64) time.Duration {
 		if count == 1 {
